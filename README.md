@@ -90,7 +90,11 @@ Should show milvus container running on port 19530
 docker run -p 3001:3000 -e MILVUS_URL=localhost:19530 zilliz/attu:v2.5
 Access Attu at: `http://localhost:3001`
 
+##### Attu Interface
 ![Attu Connection Interface](images/attu-connection.png)
+
+##### Attu vector example
+![Attu Vector storage example](images/attu-example.png)
 
 ### Guide
 
