@@ -1,0 +1,25 @@
+[project]
+name = "local-rag"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Caio Vasconcelos",email = "caiovsa2@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "openai (>=1.82.1,<2.0.0)",
+    "pymilvus (>=2.5.10,<3.0.0)",
+    "pymupdf (>=1.26.0,<2.0.0)",
+    "langchain (>=0.3.25,<0.4.0) ; python_version >= \"3.12\" and python_version < \"4.0\"",
+    "python-dotenv (>=1.1.0,<2.0.0)",
+    "tiktoken (>=0.9.0,<0.10.0)"
+]
+
+[tool.poetry]
+packages = [{include = "local_rag", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
