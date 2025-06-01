@@ -16,9 +16,17 @@ dependencies = [
     "tiktoken (>=0.9.0,<0.10.0)"
 ]
 
-[tool.poetry]
-packages = [{include = "local_rag", from = "src"}]
+[project.scripts]
+vectorize = "vectorizer:main"
+chat = "chat:main"
 
+[tool.poetry]
+packages = [
+    { include = "vectorizer.py" },
+    { include = "chat.py" },
+    { include = "config.py" },
+    { include = "utils.py" }
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

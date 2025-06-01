@@ -77,7 +77,7 @@ Question: {query}
 Answer:"""
 
         response = self.client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4.1-mini",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that answers questions based on provided document context."},
                 {"role": "user", "content": prompt}

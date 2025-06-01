@@ -24,11 +24,14 @@ class LocalPDFVectorizer:
     def setup_collection(self):
         """Create or get existing collection."""
         if utility.has_collection(settings.COLLECTION_NAME):
-            print(f"Collection '{settings.COLLECTION_NAME}' already exists")
-            self.collection = Collection(settings.COLLECTION_NAME)
-        else:
-            print(f"Creating collection '{settings.COLLECTION_NAME}'")
-            fields = [
+            print(f"Collection '{settings.COLLECTION_NAME}' already exists - we are dropping it so we can recreate it")
+            utility.drop_collection(settings.COLLECTION_NAME)
+            print(f"Collection {settings.COLLECTION_NAME} dropped successfully")
+            #self.collection = Collection(settings.COLLECTION_NAME)
+
+
+        print(f"Creating collection '{settings.COLLECTION_NAME}'")
+        fields = [
                 FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
                 FieldSchema(name="vector", dtype=DataType.FLOAT_VECTOR, dim=settings.EMBEDDING_DIM),
                 FieldSchema(name="text", dtype=DataType.VARCHAR, max_length=65535),
@@ -37,16 +40,16 @@ class LocalPDFVectorizer:
                 FieldSchema(name="chunk_id", dtype=DataType.VARCHAR, max_length=512),
             ]
             
-            schema = CollectionSchema(fields=fields, description="PDF document embeddings")
-            self.collection = Collection(settings.COLLECTION_NAME, schema)
+        schema = CollectionSchema(fields=fields, description="PDF document embeddings")
+        self.collection = Collection(settings.COLLECTION_NAME, schema)
             
-            # Create index
-            index_params = {
+        # Create index
+        index_params = {
                 "index_type": "IVF_FLAT",
                 "metric_type": "IP",
                 "params": {"nlist": 1024}
             }
-            self.collection.create_index(field_name="vector", index_params=index_params)
+        self.collection.create_index(field_name="vector", index_params=index_params)
         
         # Load collection
         self.collection.load()
