@@ -26,8 +26,9 @@ RAG is an AI framework that combines the strengths of traditional information re
 - **Docker** - For running Milvus locally
 - **Attu** - Milvus web UI (Just to check if everything is alright)
 
-### 📁 Project Structure
+### Project Structure
 
+```
 local-RAG/
 ├── README.md
 ├── chat.py # Chat interface
@@ -38,6 +39,7 @@ local-RAG/
 ├── pdfs/ # Directory for PDF files
 ├── .env # Environment variables
 └── tests/ # Test files
+```
 
 
 ### Installation & Setup
