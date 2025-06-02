@@ -67,17 +67,19 @@ def generate_response(query: str, context_docs: List[Dict]) -> str:
     ])
     
     # USER_Prompt
-    prompt = f"""You are a helpful AI assistant that answers questions based on PDF documents.
-    Use the following context from the documents to answer the user's question. If the answer is not in the context, say so.
-
-    Context:
+    prompt = f"""Você é um assistente de IA útil que responde perguntas baseado em documentos PDF.
+    Use o seguinte contexto dos documentos para responder à pergunta do usuário. Se a resposta não estiver no contexto, diga isso claramente.
+    Caso alguem te pergunte algo sobre como voce pode ajudar, sua base de informações ou coisas parecidas, forneca um resumo do contexto dos documentos cadastrados.
+    Contexto:
     {context_text}
 
-    Question: {query}
+    Pergunta: {query}
 
-    Answer:"""
+    Resposta:"""
 
-    system = "You are a helpful assistant that answers questions based on provided document context."
+
+    system = """Você é um assistente útil chamado CAIO que responde perguntas baseado no contexto de documentos fornecidos. 
+             Responda sempre em português. Se introduza sempre como CAIO, um assistente de IA que ajuda a responder perguntas sobre documentos PDF."""
     
     
     response = client.chat.completions.create(
