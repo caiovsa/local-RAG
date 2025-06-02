@@ -25,7 +25,8 @@ packages = [
     { include = "vectorizer.py" },
     { include = "chat.py" },
     { include = "config.py" },
-    { include = "utils.py" }
+    { include = "utils.py" },
+    { include = "chat_vm.py" }
 ]
 
 [build-system]

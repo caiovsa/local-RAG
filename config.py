@@ -7,6 +7,10 @@ class Settings:
     # OpenAI
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     
+    # VM
+    VM_MODEL = "ibm-granite/granite-3.3-8b-instruct"
+    VM_ADDRESS = "https://4gca2nseftuoyo-8000.proxy.runpod.net/v1"
+    
     # Milvus (local)
     MILVUS_HOST = "localhost"
     MILVUS_PORT = "19530"
