@@ -95,7 +95,7 @@ def generate_response(query: str, context_docs: List[Dict]) -> str:
     return response.choices[0].message.content
 
 def chat_loop():
-    """Main chat loop."""
+    """chat loop."""
     print("\nPDF Chat Assistant")
     print("=" * 50)
     print("Ask questions about your PDF documents. Type 'quit' to exit.")
@@ -114,7 +114,7 @@ def chat_loop():
             
             print("Searching for relevant documents...")
             
-            # Search for similar documents
+            # Busca de documentos similares
             similar_docs = search_similar_documents(query, top_k=3)
             
             if not similar_docs:
@@ -123,13 +123,13 @@ def chat_loop():
             
             print(f"Found {len(similar_docs)} relevant document(s)")
             
-            # Generate response
+            # Resposta
             print("Generating response...")
             response = generate_response(query, similar_docs)
             
             print(f"\nAssistant: {response}\n")
             
-            # Show sources
+            # Print dos documentos similares encontrados
             print("Sources:")
             for i, doc in enumerate(similar_docs, 1):
                 print(f"  {i}. {doc['file_name']} (page {doc['page_number']}) - Score: {doc['score']:.3f}")
@@ -142,7 +142,7 @@ def chat_loop():
             print(f"Error: {e}")
 
 def main():
-    """Main function to run the chat interface."""
+    """Main function"""
     # Initialize connections
     if not initialize_connections():
         sys.exit(1)

@@ -10,24 +10,24 @@ from pymilvus import (
 from config import settings
 from utils import extract_text_from_pdf, split_text, generate_doc_id, clean_text
 
-# Global variables for connections
+# Global variables
 client = None
 milvus_client = None
 collection = None
 
 def initialize_connections():
-    """Initialize OpenAI client and Milvus connection."""
+    """OPENAI e Milvus connections"""
     global client, milvus_client
     
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
     milvus_client = MilvusClient(settings.MILVUS_URI)
     
-    # Connect to Milvus
+    # Milvus
     connections.connect("default", host=settings.MILVUS_HOST, port=settings.MILVUS_PORT)
     print("✅ Connected to Milvus")
 
 def setup_collection():
-    """Create or recreate collection (drops existing if present)."""
+    """Cria ou recria a coleção no Milvus. (Dropa se já existir para poder inserir novos dados)"""
     global collection
     
     if utility.has_collection(settings.COLLECTION_NAME):
@@ -48,7 +48,7 @@ def setup_collection():
     schema = CollectionSchema(fields=fields, description="PDF document embeddings")
     collection = Collection(settings.COLLECTION_NAME, schema)
     
-    # Create index
+    # Index
     index_params = {
         "index_type": "IVF_FLAT",
         "metric_type": "IP",
@@ -61,9 +61,10 @@ def setup_collection():
     collection.load()
 
 def generate_embeddings(texts: List[str]) -> List[List[float]]:
-    """Generate embeddings for text chunks."""
+    """Embeddings são gerados usando o modelo text-embedding-3-large do OpenAI.
+    Eles são usados para representar o texto em um espaço vetorial."""
     embeddings = []
-    batch_size = 100  # Process in batches to avoid API limits
+    batch_size = 100  # Processa em batches para evitar limites do OpenAI API
     
     for i in range(0, len(texts), batch_size):
         batch = texts[i:i + batch_size]
@@ -77,22 +78,22 @@ def generate_embeddings(texts: List[str]) -> List[List[float]]:
         batch_embeddings = [data.embedding for data in response.data]
         embeddings.extend(batch_embeddings)
         
-        # Small delay to respect rate limits
+        # Delay para evitar o hitting API rate limits
         time.sleep(0.5)
     
     return embeddings
 
 def process_pdf(pdf_path: str) -> int:
-    """Process a single PDF file."""
+    """Processa um unico PDF, extrai texto, divide em chunks, gera embeddings e insere no Milvus."""
     print(f"Processing PDF: {pdf_path}")
     
-    # Extract text from PDF
+    # Extrai texto do PDF
     pages = extract_text_from_pdf(pdf_path)
     if not pages:
         print(f"No text found in {pdf_path}")
         return 0
     
-    # Process each page
+    # Processa paginas em chunks
     all_chunks = []
     all_metadata = []
     
@@ -113,11 +114,11 @@ def process_pdf(pdf_path: str) -> int:
         print(f"No valid chunks found in {pdf_path}")
         return 0
     
-    # Generate embeddings
+    # embeddings
     print(f"Generating embeddings for {len(all_chunks)} chunks...")
     embeddings = generate_embeddings(all_chunks)
     
-    # Prepare data for insertion
+    # Prepara os dados para a inserção no Milvus
     data_to_insert = []
     for i, (chunk, embedding, metadata) in enumerate(zip(all_chunks, embeddings, all_metadata)):
         data_to_insert.append({
@@ -128,7 +129,7 @@ def process_pdf(pdf_path: str) -> int:
             "chunk_id": metadata["chunk_id"]
         })
     
-    # Insert into Milvus
+    # Insere no Milvus
     print(f"Inserting {len(data_to_insert)} chunks into Milvus...")
     collection.insert(data_to_insert)
     
@@ -136,7 +137,7 @@ def process_pdf(pdf_path: str) -> int:
     return len(data_to_insert)
 
 def process_all_pdfs() -> int:
-    """Process all PDFs in the PDF directory."""
+    """Processa todos os PDFs no diretório configurado."""
     pdf_dir = Path(settings.PDF_DIRECTORY)
     if not pdf_dir.exists():
         print(f"Creating PDF directory: {pdf_dir}")
@@ -158,7 +159,7 @@ def process_all_pdfs() -> int:
     return total_chunks
 
 def main():
-    """Main function to run the vectorizer."""
+    """Main function."""
     print("Starting Local PDF Vectorizer")
     print("=" * 50)
     

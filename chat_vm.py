@@ -10,21 +10,22 @@ vm_client = None
 collection = None
 
 def initialize_connections():
-    """Initialize OpenAI client for embeddings and VM client for chat completions"""
+    """Inicia OPENAI, Milvus e VM nesta bomba"""
     global openai_client, vm_client, collection
     
-    # OpenAI client for embeddings
+    # OpenAI
     openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
     
-    # VM client for chat completions (your local model)
+    # VM client para rodar seu modelo na VM do runpod
     vm_client = OpenAI(api_key=settings.OPENAI_API_KEY,
-        base_url= settings.VM_ADDRESS,  # Local VM model address
+        #base_url=settings.VM_ADDRESS,  # VM no runpod.io, tire o comentario se quiser usar 
+        base_url= settings.LOCAL_VM_ADDRESS,  # Local VM, tire o comentario se quiser usar uma VM local
     )
     
-    # Connection with Milvus
+    # Milvus
     connections.connect("default", host=settings.MILVUS_HOST, port=settings.MILVUS_PORT)
     
-    # Load collection
+    # Pega a coleção
     try:
         collection = Collection(settings.COLLECTION_NAME)
         collection.load()
@@ -36,7 +37,9 @@ def initialize_connections():
         return False
 
 def generate_query_embedding(query: str) -> List[float]:
-    """Generate embedding for the query using OpenAI"""
+    """Faz a geração do embedding da consulta (Pergunta ou Query) usando OpenAI
+    Resumidamente o embedding é uma representação numérica do texto
+    que pode ser usado para comparar similaridade entre textos."""
     response = openai_client.embeddings.create(
         input=[query],
         model="text-embedding-3-large"
@@ -44,7 +47,8 @@ def generate_query_embedding(query: str) -> List[float]:
     return response.data[0].embedding
 
 def search_similar_documents(query: str, top_k: int = 5) -> List[Dict]:
-    """Get query embedding and search using IP (Inner Product)"""
+    """Usa IP (Inner Product) para buscar documentos similares no Milvus
+    com base no embedding da consulta."""
     query_embedding = generate_query_embedding(query)
     
     search_params = {"metric_type": "IP", "params": {"nprobe": 10}}
@@ -69,14 +73,16 @@ def search_similar_documents(query: str, top_k: int = 5) -> List[Dict]:
     return similar_docs
 
 def generate_response(query: str, context_docs: List[Dict]) -> str:
-    """Use VM model to generate response with improved error handling"""
+    """Verifica se o modelo VM está rodando e gera uma resposta
+    usando o modelo VM com base nos documentos contextuais.
+    Mesma forma do generate_response do chat normal, mas esse nos usamos o modelo alocado em uma VM."""
     # Context
     context_text = "\n\n".join([
         f"From {doc['file_name']} (page {doc['page_number']}):\n{doc['text']}"
         for doc in context_docs
     ])
     
-    # Simplified prompt for better compatibility
+    # Prompt super simples, apenas para funcionar mesmo
     prompt = f"""Baseado no seguinte contexto dos documentos, responda à pergunta do usuário em português.
         Contexto:
         {context_text}
@@ -86,14 +92,14 @@ def generate_response(query: str, context_docs: List[Dict]) -> str:
     system = "Você é um assistente útil chamado CAIO que responde perguntas baseado no contexto de documentos fornecidos. Responda sempre em português."
     
     try:
-        # Using VM model for chat completion
+        # Vamos usar o modelo de uma VM, seja no runpod.io ou em qualquer outra VM que você tenha configurado
         response = vm_client.chat.completions.create(
             model=settings.VM_MODEL,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": prompt}
             ],
-            extra_body={"chat_template_kwargs": {"thinking": False}}, # Esse é para o granite
+            #extra_body={"chat_template_kwargs": {"thinking": True}}, # Esse é para o granite
             max_tokens=25000,
             temperature=0.3,
             stream=False
@@ -121,12 +127,13 @@ def generate_response(query: str, context_docs: List[Dict]) -> str:
 
 
 def chat_loop():
-    """Main chat loop with improved error handling"""
+    """Loop de chat para interagir com o usuário e responder perguntas
+    sobre os documentos PDF usando o modelo VM."""
     print("\nPDF Chat Assistant (VM Model)")
     print("=" * 50)
     print("Ask questions about your PDF documents. Type 'quit' to exit.")
     print("Using VM model: {}".format(settings.VM_MODEL))
-    print("VM Address: {}".format(settings.VM_ADDRESS))
+    #print("VM Address: {}".format(settings.VM_ADDRESS))
     print()
     
     while True:
@@ -142,7 +149,7 @@ def chat_loop():
             
             print("Searching for relevant documents...")
             
-            # Search for similar documents
+            # Busca de documentos similares
             similar_docs = search_similar_documents(query, top_k=3)
             
             if not similar_docs:
@@ -151,13 +158,13 @@ def chat_loop():
             
             print(f"Found {len(similar_docs)} relevant document(s)")
             
-            # Generate response using VM model
+            # Resposta
             print("Generating response with VM model...")
             response = generate_response(query, similar_docs)
             
             print(f"\nAssistant: {response}\n")
             
-            # Show sources
+            # Print dos documentos similares encontrados
             print("Sources:")
             for i, doc in enumerate(similar_docs, 1):
                 print(f"  {i}. {doc['file_name']} (page {doc['page_number']}) - Score: {doc['score']:.3f}")
@@ -170,7 +177,7 @@ def chat_loop():
             print(f"Error in chat loop: {e}")
 
 def main():
-    """Main function to run the chat interface with VM model"""
+    """Main function"""
     # Initialize connections
     if not initialize_connections():
         sys.exit(1)

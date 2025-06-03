@@ -9,18 +9,19 @@ class Settings:
     
     # VM
     VM_MODEL = "ibm-granite/granite-3.3-8b-instruct"
-    VM_ADDRESS = "https://4gca2nseftuoyo-8000.proxy.runpod.net/v1"
+    VM_ADDRESS = os.getenv("VM_ADDRESS")
+    LOCAL_VM_ADDRESS = os.getenv("LOCAL_VM_ADDRESS")
     
     # Milvus (local)
     MILVUS_HOST = "localhost"
     MILVUS_PORT = "19530"
     MILVUS_URI = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
     
-    # Collection settings
+    # Collection 
     COLLECTION_NAME = "pdf_documents"
     EMBEDDING_DIM = 3072  # text-embedding-3-large dimension
     
-    # PDF processing
+    # PDF 
     PDF_DIRECTORY = "pdfs"
     CHUNK_SIZE = 600
     CHUNK_OVERLAP = 150
